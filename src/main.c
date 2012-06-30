@@ -220,6 +220,7 @@ static struct cmdline_option option_data[] =
 #endif
     { "input-file", 'i', OPT_VALUE, "input", -1 },
     { "iri", 0, OPT_BOOLEAN, "iri", -1 },
+    { "jobs", 0, OPT_VALUE, "jobs", 1 },
     { "keep-session-cookies", 0, OPT_BOOLEAN, "keepsessioncookies", -1 },
     { "level", 'l', OPT_VALUE, "reclevel", -1 },
     { "limit-rate", 0, OPT_VALUE, "limitrate", -1 },
@@ -714,6 +715,10 @@ Recursive download:\n"),
   -l,  --level=NUMBER              maximum recursion depth (inf or 0 for infinite).\n"),
     N_("\
        --delete-after              delete files locally after downloading them.\n"),
+    N_("\
+  --jobs          specify how many threads use.\n"),
+    N_("\
+  -l,  --level=NUMBER       maximum recursion depth (inf or 0 for infinite).\n"),
     N_("\
   -k,  --convert-links             make links in downloaded HTML or CSS point to\n\
                                    local files.\n"),
