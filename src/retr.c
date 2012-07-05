@@ -744,9 +744,13 @@ retrieve_url (struct url * orig_parsed, const char *origurl, char **file,
   url = xstrdup (origurl);
   if (newloc)
     *newloc = NULL;
-  if (file)
-    *file = NULL;
-
+/*
+ * GSoC wget - taken into comments to ensure parameter file can be used to 
+ * transfer filenames to help assigning the file name.
+ * 
+ *if (file)
+ *  *file = NULL;
+*/
   if (!refurl)
     refurl = opt.referer;
 
@@ -755,7 +759,7 @@ retrieve_url (struct url * orig_parsed, const char *origurl, char **file,
 
   result = NOCONERROR;
   mynewloc = NULL;
-  local_file = NULL;
+  local_file = *file;
   proxy_url = NULL;
 
   proxy = getproxy (u);
@@ -1060,8 +1064,6 @@ retrieve_from_file (const char *file, bool html, int *count)
       i = 0;
       while((file = metalink->files[i]) != NULL)
         {
-          opt.output_document = file->name;
-
           j = 0;
           while((resource = file->resources[j]) != NULL)
             {
@@ -1078,7 +1080,7 @@ retrieve_from_file (const char *file, bool html, int *count)
               if (!opt.base_href)
                 opt.base_href = xstrdup (url);
 
-              status = retrieve_url (url_parsed, url, &url_file, NULL, NULL,
+              status = retrieve_url (url_parsed, url, &(file->name), NULL, NULL,
                              &dt, false, iri, true);
               url_free (url_parsed);
               
