@@ -69,6 +69,8 @@ as that of the covered work.  */
 # include "vms.h"
 #endif /* def __VMS */
 
+# include "multi.h"
+
 extern char *version_string;
 
 /* Forward decls. */
@@ -1323,6 +1325,7 @@ register_persistent (const char *host, int port, int fd, bool ssl)
     {
       struct s_pconn *prev = NULL;
       if (pconn)
+        {
         for (it = pconn; it->next; it = it->next)
           prev = it;
 
@@ -1519,6 +1522,8 @@ struct http_stat
   wgint len;                    /* received length */
   wgint contlen;                /* expected length */
   wgint restval;                /* the restart value */
+  wgint restval_last;           /* last byte to download while downloading in
+                                   segments */
   int res;                      /* the result of last read */
   char *rderrmsg;               /* error message from read error */
   char *newloc;                 /* new location (redirection) */
@@ -1870,10 +1875,19 @@ gethttp (struct url *u, struct http_stat *hs, int *dt, struct url *proxy,
       request_set_header (req, "Pragma", "no-cache", rel_none);
     }
   if (hs->restval)
-    request_set_header (req, "Range",
-                        aprintf ("bytes=%s-",
-                                 number_to_static_string (hs->restval)),
-                        rel_value);
+    {
+      if(hs->restval_last)
+        request_set_header (req, "Range",
+                            aprintf ("bytes=%s-%s",
+                                     number_to_static_string (hs->restval),
+                                     number_to_static_string (hs->restval_last)),
+                            rel_value);
+      else
+        request_set_header (req, "Range",
+                            aprintf ("bytes=%s-",
+                                     number_to_static_string (hs->restval)),
+                            rel_value);
+    }
   SET_USER_AGENT (req);
   request_set_header (req, "Accept", "*/*", rel_none);
 
@@ -2566,7 +2580,7 @@ read_header:
           xfree_null (message);
           return RETRUNNEEDED;
         }
-      else if (!ALLOW_CLOBBER)
+      else if (!ALLOW_CLOBBER && !(hs->restval_last))
         {
           char *unique = unique_name (hs->local_file, true);
           if (unique != hs->local_file)
@@ -3061,7 +3075,7 @@ read_header:
 uerr_t
 http_loop (struct url *u, struct url *original_url, char **newloc,
            char **local_file, const char *referer, int *dt, struct url *proxy,
-           struct iri *iri)
+           struct iri *iri, struct range *range)
 {
   int count;
   bool got_head = false;         /* used for time-stamping and filename detection */
@@ -3204,6 +3218,9 @@ Spider mode enabled. Check if remote file exists.\n"));
       else
         *dt &= ~HEAD_ONLY;
 
+
+      /* GSoC TODO: should correct assignments to restval_last below to
+         include cases like server failure in one of the segments. */
       /* Decide whether or not to restart.  */
       if (force_full_retrieve)
         hstat.restval = hstat.len;
@@ -3216,12 +3233,26 @@ Spider mode enabled. Check if remote file exists.\n"));
         /* When -c is used, continue from on-disk size.  (Can't use
            hstat.len even if count>1 because we don't want a failed
            first attempt to clobber existing data.)  */
-        hstat.restval = st.st_size;
+        {
+          hstat.restval = st.st_size;
+          hstat.restval_last = 0;
+        }
       else if (count > 1)
+        {
         /* otherwise, continue where the previous try left off */
-        hstat.restval = hstat.len;
+          hstat.restval = hstat.len;
+          hstat.restval_last = 0;
+        }
+      else if (range)
+        {
+          hstat.restval = range->first_byte;
+          hstat.restval_last = range -> last_byte;
+        }
       else
-        hstat.restval = 0;
+        {
+          hstat.restval = 0;
+          hstat.restval_last = 0;
+        }
 
       /* Decide whether to send the no-cache directive.  We send it in
          two cases:

@@ -1666,7 +1666,7 @@ outputting to a regular file.\n"));
           else
           {
             retrieve_url (url_parsed, *t, &filename, &redirected_URL, NULL,
-                          &dt, opt.recursive, iri, true);
+                          &dt, opt.recursive, iri, true, NULL);
           }
 
           if (opt.delete_after && filename != NULL && file_exists_p (filename))
