@@ -382,7 +382,8 @@ AS_IF([test x"$ENABLE_METALINK" == xyes],[
     dnl If metalink module is found
     AC_MSG_NOTICE([compiling in support for metalink])
     LIBS="$LIBMETALINK_LIBS $LIBS"
-    LIBS="$LIBMETALINK_CFLAGS $CFLAGS"
+    CFLAGS="$LIBMETALINK_CFLAGS $CFLAGS"
+    metalink=yes
   ], [
     dnl If metalink module is not found
     AC_MSG_ERROR([libmetalink not found])
@@ -390,6 +391,7 @@ AS_IF([test x"$ENABLE_METALINK" == xyes],[
 ],[
   dnl If metalink support is not requested
   AC_MSG_NOTICE([compiling without support for metalink])
+  metalink=no
 ])
 
 
@@ -593,7 +595,7 @@ AC_CHECK_HEADER(pcre.h,
 
 dnl Needed by src/Makefile.am
 AM_CONDITIONAL([IRI_IS_ENABLED], [test "X$iri" != "Xno"])
-
+AM_CONDITIONAL([METALINK_IS_ENABLED], [test "X$metalink" != "Xno"])
 
 dnl
 dnl Create output

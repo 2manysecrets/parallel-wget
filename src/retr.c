@@ -41,6 +41,9 @@ as that of the covered work.  */
 # include <unixio.h>            /* For delete(). */
 #endif
 #include <metalink/metalink_parser.h>
+#include <metalink/metalink_types.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 #include "exits.h"
 #include "utils.h"
