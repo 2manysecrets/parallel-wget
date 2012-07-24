@@ -29,6 +29,7 @@ as that of the covered work.  */
 
 #ifndef IRI_H
 #define IRI_H
+#include <stdbool.h>
 
 struct iri {
   char *uri_encoding;      /* Encoding of the uri to fetch */
