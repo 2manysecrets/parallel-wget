@@ -356,6 +356,15 @@ typedef enum
   WARC_ERR, WARC_TMP_FOPENERR, WARC_TMP_FWRITEERR
 } uerr_t;
 
+struct range {
+  int first_byte;
+  int last_byte;
+  int is_covered;
+  int is_assigned;
+  bool *resources;
+  uerr_t status_least_severe;
+};
+
 /* 2005-02-19 SMS.
    Select an appropriate "orig" suffix and a separator character for
    adding a unique suffix to a file name.

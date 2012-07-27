@@ -3090,18 +3090,19 @@ http_loop (struct url *u, struct url *original_url, char **newloc,
   char *file_name;
   bool force_full_retrieve = false;
 
-
   /* If we are writing to a WARC file: always retrieve the whole file. */
   if (opt.warc_filename != NULL)
     force_full_retrieve = true;
 
 
+#ifndef ENABLE_METALINK
   /* Assert that no value for *LOCAL_FILE was passed. */
-/*  assert (local_file == NULL || *local_file == NULL);*/
+  assert (local_file == NULL || *local_file == NULL);
 
   /* Set LOCAL_FILE parameter. */
-/*  if (local_file && opt.output_document)
-    *local_file = HYPHENP (opt.output_document) ? NULL : xstrdup (opt.output_document); */
+  if (local_file && opt.output_document)
+    *local_file = HYPHENP (opt.output_document) ? NULL : xstrdup (opt.output_document);
+#endif
 
   /* Reset NEWLOC parameter. */
   *newloc = NULL;
