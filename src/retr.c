@@ -42,9 +42,9 @@ as that of the covered work.  */
 #endif
 #include <metalink/metalink_parser.h>
 #include <metalink/metalink_types.h>
+#ifdef ENABLE_METALINK
 #include <pthread.h>
 #include <semaphore.h>
-#ifdef ENABLE_METALINK
 #include <metalink/metalink_parser.h>
 #include <metalink/metalink_types.h>
 
@@ -68,11 +68,13 @@ as that of the covered work.  */
 #include "metalink.h"
 #include "multi.h"
 
+#ifdef ENABLE_METALINK
 static pthread_mutex_t pconn_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #define PCONN_LOCK() pthread_mutex_lock (&pconn_mutex)
 
 #define PCONN_UNLOCK() pthread_mutex_unlock (&pconn_mutex)
+#endif
 
 /* Total size of downloaded files.  Used to enforce quota.  */
 SUM_SIZE_INT total_downloaded_bytes;
