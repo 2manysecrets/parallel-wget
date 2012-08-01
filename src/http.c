@@ -41,8 +41,9 @@ as that of the covered work.  */
 #include <locale.h>
 #ifdef ENABLE_THREADS
 #include <pthread.h>
-#endif
 
+# include "multi.h"
+#endif
 #include "hash.h"
 #include "http.h"
 #include "utils.h"
@@ -70,8 +71,6 @@ as that of the covered work.  */
 #ifdef __VMS
 # include "vms.h"
 #endif /* def __VMS */
-
-# include "multi.h"
 
 extern char *version_string;
 

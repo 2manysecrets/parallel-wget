@@ -37,7 +37,12 @@ as that of the covered work.  */
 #include <unistd.h>
 #include <errno.h>
 #include <assert.h>
+#ifdef ENABLE_THREADS
+#include <pthread.h>
+#include <semaphore.h>
 
+#include "multi.h"
+#endif
 #include "url.h"
 #include "recur.h"
 #include "utils.h"
