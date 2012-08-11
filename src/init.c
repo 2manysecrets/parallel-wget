@@ -287,9 +287,6 @@ static const struct {
   { "useragent",        NULL,                   cmd_spec_useragent },
   { "useservertimestamps", &opt.useservertimestamps, cmd_boolean },
   { "verbose",          NULL,                   cmd_spec_verbose },
-#ifdef ENABLE_METALINK
-  { "verify",           &opt.hashtype,          cmd_string },
-#endif
   { "wait",             &opt.wait,              cmd_time },
   { "waitretry",        &opt.waitretry,         cmd_time },
   { "warccdx",          &opt.warc_cdx_enabled,  cmd_boolean },
