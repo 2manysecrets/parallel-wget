@@ -1132,7 +1132,7 @@ retrieve_from_file (const char *file, bool html, int *count)
 
           /* To make sure temporary files in which the segments are downloaded
              do not become corrupt, as wget appends while writing into files. */
-          delete_temp_files(file->name, N_THREADS);
+          delete_temp_files(files, N_THREADS);
 
           sem_init (&retr_sem, 0, 0);
           j = ranges_covered = 0;
@@ -1276,7 +1276,7 @@ retrieve_from_file (const char *file, bool html, int *count)
                 }
             }
 
-          delete_temp_files(file->name, N_THREADS);
+          delete_temp_files(files, N_THREADS);
 
           for (j = 0; j < N_THREADS; ++j)
             free(ranges[j].resources);
