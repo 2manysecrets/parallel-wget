@@ -33,14 +33,17 @@ struct options
 {
   int verbose;                  /* Are we verbose?  (First set to -1,
                                    hence not boolean.) */
-  bool quiet;                   /* Are we quiet? */
-  int ntry;                     /* Number of tries per URL */
-  bool retry_connrefused;       /* Treat CONNREFUSED as non-fatal. */
-  bool background;              /* Whether we should work in background. */
-  bool ignore_length;           /* Do we heed content-length at all?  */
-  bool recursive;               /* Are we recursive? */
-  bool spanhost;                /* Do we span across hosts in
-                                   recursion? */
+  bool quiet;			/* Are we quiet? */
+  int ntry;			/* Number of tries per URL */
+#ifdef ENABLE_METALINK
+  int n_retries;		/* Number of tries per file */
+#endif
+  bool retry_connrefused;	/* Treat CONNREFUSED as non-fatal. */
+  bool background;		/* Whether we should work in background. */
+  bool ignore_length;		/* Do we heed content-length at all?  */
+  bool recursive;		/* Are we recursive? */
+  bool spanhost;		/* Do we span across hosts in
+				   recursion? */
   int  max_redirect;            /* Maximum number of times we'll allow
                                    a page to redirect. */
   bool relative_only;           /* Follow only relative links. */
