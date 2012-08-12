@@ -1685,7 +1685,8 @@ ftp_loop_internal (struct url *u, struct fileinfo *f, ccon *con, char **local_fi
 
       /* If we are working on a WARC record, getftp should also write
          to the warc_tmp file. */
-      err = getftp (u, len, &qtyread, restval, con, count);
+      err = getftp (u, len, &qtyread, restval, con, count, &last_expected_bytes,
+                    warc_tmp);
 
       if (range)
         range->bytes_covered = qtyread;
