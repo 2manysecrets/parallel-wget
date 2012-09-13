@@ -1,3 +1,7 @@
+2012-08-14  Ilim Ugur <ilimugur@gmail.com>
+
+	* wget.texi: Document --metalink-file and --retries.
+
 2014-06-11  Giuseppe Scrivano  <gscrivan@redhat.com>
 
 	* Makefile.am: Remove @VAR@ with $FOO.
