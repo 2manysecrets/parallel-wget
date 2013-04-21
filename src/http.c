@@ -2570,10 +2570,12 @@ read_header:
         }
     }
 
-  if (keep_alive)
-    /* The server has promised that it will not close the connection
-       when we're done.  This means that we can register it.  */
-    register_persistent (conn->host, conn->port, sock, using_ssl);
+  /* The server has promised that it will not close the connection
+     when we're done.  This means that we can register it.  */
+#define REGISTER_PERSISTENT_CONNECTION()  {                             \
+    if (keep_alive)                                                     \
+      register_persistent (conn->host, conn->port, sock, using_ssl);    \
+  } while (0)
 
   if (statcode == HTTP_STATUS_UNAUTHORIZED)
     {
@@ -2697,6 +2699,8 @@ read_header:
       xfree_null (message);
       resp_free (resp);
       xfree (head);
+      REGISTER_PERSISTENT_CONNECTION ();
+
       if (auth_err == RETROK)
         return AUTHFAILED;
       else
@@ -2753,6 +2757,7 @@ read_header:
           resp_free (resp);
           xfree (head);
           xfree_null (message);
+          REGISTER_PERSISTENT_CONNECTION ();
           return RETRUNNEEDED;
         }
       else if (!ALLOW_CLOBBER)
@@ -2949,6 +2954,7 @@ read_header:
 
           xfree_null (type);
           xfree (head);
+          REGISTER_PERSISTENT_CONNECTION ();
           /* From RFC2616: The status codes 303 and 307 have
              been added for servers that wish to make unambiguously
              clear which kind of reaction is expected of the client.
@@ -3131,6 +3137,7 @@ read_header:
             CLOSE_INVALIDATE (sock);
         }
 
+      REGISTER_PERSISTENT_CONNECTION ();
       xfree (head);
       xfree_null (type);
       return RETRFINISHED;
@@ -3232,6 +3239,8 @@ read_header:
   /* Now we no longer need to store the response header. */
   xfree (head);
   xfree_null (type);
+
+  REGISTER_PERSISTENT_CONNECTION ();
 
   if (hs->res >= 0)
     CLOSE_FINISH (sock);
