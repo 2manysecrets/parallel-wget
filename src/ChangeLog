@@ -1,3 +1,18 @@
+2013-05-22  Bykov Aleksey <gnfalex@rambler.ru>
+
+	* multi.c (merge_temp_files): Changed fopen mode from text to binary.
+	* metalink.c (verify_file_hash): Likewise.
+
+2013-05-21  Ray Satiro  <raysatiro@yahoo.com>
+
+	* http.c (create_authorization_line): Fix syntax error in calls to NTLM
+	functions.
+	* url.c (url_file_name): Use MAX_PATH in Windows.
+
+2013-05-19  Giuseppe Scrivano  <gscrivano@gnu.org>
+
+	* Makefile.am (EXTRA_DIST): Add iri.c multi.c multi.h metalink.c metalink.h.
+
 2013-04-21  Giuseppe Scrivano  <gscrivano@gnu.org>
 
 	* http.c (gethttp): Do not register the persistent connection too
