@@ -1239,6 +1239,9 @@ parse_content_disposition (const char *hdr, char **filename)
 /* Whether a persistent connection is active. */
 static bool pconn_active;
 
+#define PCONN_LOCK()
+#define PCONN_UNLOCK()
+
 static struct {
 #else
 static pthread_mutex_t pconn_mutex;
