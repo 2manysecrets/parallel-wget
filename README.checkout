@@ -5,7 +5,7 @@ Compiling From Repository Sources
    normally present in the distribution tarballs. Therefore, to build GNU
    Wget from the sources in the repository, you'll need to have one or
    more of the following (note that gettext, OpenSSL, libidn, libiconv
-   and libpsl are not absolutely required):
+  libpsl and libmetalink are not absolutely required):
 
      * [20]autoconf (currently, GNU Wget requires version 2.61). This is
        needed to generate the configure script from configure.in. This is
@@ -70,6 +70,8 @@ Compiling From Repository Sources
 
      * [35]libpsl is required for using a public suffix list to check for valid
        cookie domains.
+
+     * [44]libmetalink is required for compiling with Metalink support.
 
    For those who might be confused as to what to do once they check out
    the source code, considering configure and Makefile do not yet exist at
@@ -142,3 +144,13 @@ References
   42. http://moinmo.in/GPL
   43. http://validator.w3.org/check?uri=referer
   44. http://wget.addictivecode.org/WikiLicense
+  45. http://wget.addictivecode.org/CompilingRepoSources?action=edit&editor=text
+  46. http://wget.addictivecode.org/CompilingRepoSources
+  47. http://wget.addictivecode.org/CompilingRepoSources?action=info
+  48. http://wget.addictivecode.org/CompilingRepoSources?action=AttachFile
+  49. http://moinmo.in/
+  50. http://moinmo.in/Python
+  51. http://moinmo.in/GPL
+  52. http://validator.w3.org/check?uri=referer
+  53. http://wget.addictivecode.org/WikiLicense
+  54. https://launchpad.net/libmetalink
