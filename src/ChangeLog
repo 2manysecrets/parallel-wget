@@ -1,3 +1,27 @@
+2013-11-02  Giuseppe Scrivano  <gscrivan@redhat.com>
+
+	* http.c (CLOSE_INVALIDATE): Set socket fd to be invalid.
+	(register_persistent): Add control and avoid to add the same fd
+	multiple times.
+
+2013-10-30  Giuseppe Scrivano  <gscrivan@redhat.com>
+
+	* recur.c (retrieve_tree): Correctly initialize `free_threads' to
+	N_THREADS.
+
+2013-10-13  Giuseppe Scrivano  <gscrivan@redhat.com>
+
+	* multi.h (struct s_thread_ctx) [!ENABLE_THREADS]: Define "retr_sem"
+	* recur.c (THREAD_JOIN): Define.
+	(retrieve_tree) [!ENABLE_THREADS]: Refactor to use similar code
+	paths to the threads enabled version.
+	(SEM_INIT): Likewise.
+	(SEM_WAIT): Likewise.
+
+	* retr.c (retrieve_from_file): Internationalize messages.
+
+	* retr.c (retrieve_from_file): Follow GNU Coding style.
+
 2013-10-06  Giuseppe Scrivano  <gscrivan@redhat.com>
 
 	* http.c (gethttp): Unregister a connection while it is used.

@@ -1389,6 +1389,12 @@ register_persistent (const char *host, int port, int fd, bool ssl)
   PCONN_LOCK ();
 
   struct s_pconn *it;
+  for (it = pconn; it; it = it->next)
+    if (it->socket == fd)
+      {
+        DEBUGP (("Socket %d already registered.\n", fd));
+        goto exit;
+      }
 
   if (pconn_length >= opt.jobs)
     {
@@ -1656,6 +1662,7 @@ get_persistent (const char *host, int port, bool ssl, bool *host_lookup_failed)
 
 #define CLOSE_INVALIDATE(fd) do {               \
     invalidate_persistent (fd);                 \
+    fd = -1;                                    \
 } while (0)
 
 #endif
@@ -2577,7 +2584,7 @@ read_header:
 
   /* The server has promised that it will not close the connection
      when we're done.  This means that we can register it.  */
-#define REGISTER_PERSISTENT_CONNECTION()  {                             \
+#define REGISTER_PERSISTENT_CONNECTION(i) do {   \
     if (keep_alive)                                                     \
       register_persistent (conn->host, conn->port, sock, using_ssl);    \
     else                                                                \
@@ -2611,14 +2618,14 @@ read_header:
               return _err;
             }
           else
-            REGISTER_PERSISTENT_CONNECTION ();
+            REGISTER_PERSISTENT_CONNECTION (1);
         }
       else
         {
           /* Since WARC is disabled, we are not interested in the response body.  */
           if (keep_alive && !head_only
               && skip_short_body (sock, contlen, chunked_transfer_encoding)) {
-            REGISTER_PERSISTENT_CONNECTION ();
+            REGISTER_PERSISTENT_CONNECTION (2);
           }
           else
             CLOSE_INVALIDATE (sock);
@@ -2707,7 +2714,7 @@ read_header:
       xfree_null (message);
       resp_free (resp);
       xfree (head);
-      REGISTER_PERSISTENT_CONNECTION ();
+      REGISTER_PERSISTENT_CONNECTION (3);
 
       if (auth_err == RETROK)
         return AUTHFAILED;
@@ -2765,7 +2772,7 @@ read_header:
           resp_free (resp);
           xfree (head);
           xfree_null (message);
-          REGISTER_PERSISTENT_CONNECTION ();
+          REGISTER_PERSISTENT_CONNECTION (4);
           return RETRUNNEEDED;
         }
       else if (!ALLOW_CLOBBER)
@@ -2948,7 +2955,7 @@ read_header:
                   return _err;
                 }
               else
-                REGISTER_PERSISTENT_CONNECTION ();
+                REGISTER_PERSISTENT_CONNECTION (5);
             }
           else
             {
@@ -2956,7 +2963,7 @@ read_header:
               if (keep_alive && !head_only
                   && skip_short_body (sock, contlen, chunked_transfer_encoding))
                 {
-                  REGISTER_PERSISTENT_CONNECTION ();
+                  REGISTER_PERSISTENT_CONNECTION (11);
                 }
               else
                 CLOSE_INVALIDATE (sock);
@@ -2964,7 +2971,7 @@ read_header:
 
           xfree_null (type);
           xfree (head);
-          REGISTER_PERSISTENT_CONNECTION ();
+          REGISTER_PERSISTENT_CONNECTION (6);
           /* From RFC2616: The status codes 303 and 307 have
              been added for servers that wish to make unambiguously
              clear which kind of reaction is expected of the client.
@@ -3127,7 +3134,7 @@ read_header:
               return _err;
             }
           else
-            REGISTER_PERSISTENT_CONNECTION();
+            REGISTER_PERSISTENT_CONNECTION(7);
         }
       else
         {
@@ -3143,13 +3150,13 @@ read_header:
                    && skip_short_body (sock, contlen, chunked_transfer_encoding))
             {
               /* Successfully skipped the body; also keep using the socket. */
-              REGISTER_PERSISTENT_CONNECTION();
+              REGISTER_PERSISTENT_CONNECTION(8);
             }
           else
             CLOSE_INVALIDATE (sock);
         }
 
-      REGISTER_PERSISTENT_CONNECTION ();
+      REGISTER_PERSISTENT_CONNECTION (9);
       xfree (head);
       xfree_null (type);
       return RETRFINISHED;
@@ -3252,7 +3259,7 @@ read_header:
   xfree (head);
   xfree_null (type);
 
-  REGISTER_PERSISTENT_CONNECTION ();
+  REGISTER_PERSISTENT_CONNECTION (10);
 
   if (hs->res >= 0)
     CLOSE_FINISH (sock);
