@@ -221,10 +221,10 @@ progress_create (const char *f_download, wgint initial, wgint total)
   if (ret)
     {
       LOCK_PROGRESS ();
-      if (current_progress == NULL)
-        current_progress = ret;
+
       ret->next = progress_list;
       progress_list = ret;
+
       UNLOCK_PROGRESS ();
     }
   return ret;
@@ -313,7 +313,7 @@ progress_finish (void *progress, double dltime)
                 current_progress = it->next;
 
               if (it == progress_list)
-                progress_list = NULL;
+                progress_list = progress_list->next;
               else
                 prev->next = it->next;
               break;
