@@ -190,6 +190,8 @@ start_retrieve_url (void *arg)
                               false, ctx->i, true, NULL);
   ctx->terminated = 1;
   sem_post (ctx->retr_sem);
+
+  return NULL;
 }
 #endif
 
