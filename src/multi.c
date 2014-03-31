@@ -38,10 +38,13 @@ as that of the covered work.  */
 #include <unistd.h>
 
 #include "multi.h"
+#include "retr.h"
 #include "url.h"
 
 static struct range *ranges;
 char **files;
+
+static void *segmented_retrieve_url (void *);
 
 /*  Allocate space for temporary file names. */
 void
@@ -220,6 +223,9 @@ collect_thread (sem_t *retr_sem, struct s_thread_ctx *thread_ctx)
         (thread_ctx[k].range)->is_assigned = 0;
         return k;
       }
+
+  /* Should not happen. */
+  return -1;
 }
 
 /* The function which is being called by pthread_create in spawn_thread(). It
@@ -235,4 +241,6 @@ segmented_retrieve_url (void *arg)
                               false, ctx->i, true, ctx->range);
   ctx->terminated = 1;
   sem_post (ctx->retr_sem);
+
+  return NULL;
 }
