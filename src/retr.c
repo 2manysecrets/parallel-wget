@@ -1096,7 +1096,17 @@ retrieve_from_file (const char *file, bool html, int *count)
       file = mlink->files;
       while (file)
         {
-          memset(thread_ctx, '\0', opt.jobs * (sizeof *thread_ctx));
+          if (!file->num_of_res)
+            {
+              logprintf (LOG_VERBOSE, _("Downloading %s failed. File could "
+                                        "not be downloaded from any of the "
+                                        "URLs listed in metalink file.\n"),
+                         file->name);
+              file = file->next;
+              continue;
+            }
+
+          memset (thread_ctx, '\0', opt.jobs * (sizeof *thread_ctx));
 
           /* If chunk_size is too small, set it equal to MIN_CHUNK_SIZE. */
           chunk_size = (file->size) / opt.jobs;
