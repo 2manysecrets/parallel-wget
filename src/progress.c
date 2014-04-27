@@ -352,7 +352,7 @@ struct dot_progress {
 /* Dot-progress backend for progress_create. */
 
 static void *
-dot_create (const char *url, wgint initial, wgint total)
+dot_create (const char *url _GL_UNUSED, wgint initial, wgint total)
 {
   struct dot_progress *dp = xnew0 (struct dot_progress);
   dp->initial_length = initial;
@@ -376,18 +376,18 @@ dot_create (const char *url, wgint initial, wgint total)
           /* Align the [ skipping ... ] line with the dots.  To do
              that, insert the number of spaces equal to the number of
              digits in the skipped amount in K.  */
-          logprintf (LOG_VERBOSE, _("\n%*s[ skipping %sK ]"),
+          logprintf (LOG_PROGRESS, _("\n%*s[ skipping %sK ]"),
                      2 + skipped_k_len, "",
                      number_to_static_string (skipped_k));
         }
 
-      logprintf (LOG_VERBOSE, "\n%6sK",
+      logprintf (LOG_PROGRESS, "\n%6sK",
                  number_to_static_string (skipped / 1024));
       for (; remainder >= dot_bytes; remainder -= dot_bytes)
         {
           if (dp->dots % opt.dot_spacing == 0)
-            logputs (LOG_VERBOSE, " ");
-          logputs (LOG_VERBOSE, ",");
+            logputs (LOG_PROGRESS, " ");
+          logputs (LOG_PROGRESS, ",");
           ++dp->dots;
         }
       assert (dp->dots < opt.dots_in_line);
@@ -428,7 +428,7 @@ print_row_stats (struct dot_progress *dp, double dltime, bool last)
          been retrieved.  12.8% will round to 12% because the 13% mark
          has not yet been reached.  100% is only shown when done.  */
       int percentage = 100.0 * bytes_displayed / dp->total_length;
-      logprintf (LOG_VERBOSE, "%3d%%", percentage);
+      logprintf (LOG_PROGRESS, "%3d%%", percentage);
     }
 
   {
@@ -445,7 +445,7 @@ print_row_stats (struct dot_progress *dp, double dltime, bool last)
     if (dp->rows == dp->initial_length / ROW_BYTES)
       bytes_this_row -= dp->initial_length % ROW_BYTES;
     rate = calc_rate (bytes_this_row, dltime - dp->last_timer_value, &units);
-    logprintf (LOG_VERBOSE, " %4.*f%c",
+    logprintf (LOG_PROGRESS, " %4.*f%c",
                rate >= 99.95 ? 0 : rate >= 9.995 ? 1 : 2,
                rate, names[units]);
     dp->last_timer_value = dltime;
@@ -462,7 +462,7 @@ print_row_stats (struct dot_progress *dp, double dltime, bool last)
           wgint bytes_sofar = bytes_displayed - dp->initial_length;
           double eta = dltime * bytes_remaining / bytes_sofar;
           if (eta < INT_MAX - 1)
-            logprintf (LOG_VERBOSE, " %s",
+            logprintf (LOG_PROGRESS, " %s",
                        eta_to_human_short ((int) (eta + 0.5), true));
         }
     }
@@ -470,10 +470,10 @@ print_row_stats (struct dot_progress *dp, double dltime, bool last)
     {
       /* When done, print the total download time */
       if (dltime >= 10)
-        logprintf (LOG_VERBOSE, "=%s",
+        logprintf (LOG_PROGRESS, "=%s",
                    eta_to_human_short ((int) (dltime + 0.5), true));
       else
-        logprintf (LOG_VERBOSE, "=%ss", print_decimal (dltime));
+        logprintf (LOG_PROGRESS, "=%ss", print_decimal (dltime));
     }
 }
 
@@ -503,12 +503,12 @@ dot_draw (void *progress, bool force)
   for (; dp->accumulated >= dot_bytes; dp->accumulated -= dot_bytes)
     {
       if (dp->dots == 0)
-        logprintf (LOG_VERBOSE, "\n%6sK",
+        logprintf (LOG_PROGRESS, "\n%6sK",
                    number_to_static_string (dp->rows * ROW_BYTES / 1024));
 
       if (dp->dots % opt.dot_spacing == 0)
-        logputs (LOG_VERBOSE, " ");
-      logputs (LOG_VERBOSE, ".");
+        logputs (LOG_PROGRESS, " ");
+      logputs (LOG_PROGRESS, ".");
 
       ++dp->dots;
       if (dp->dots >= opt.dots_in_line)
@@ -535,17 +535,17 @@ dot_finish (void *progress, double dltime)
   log_set_flush (false);
 
   if (dp->dots == 0)
-    logprintf (LOG_VERBOSE, "\n%6sK",
+    logprintf (LOG_PROGRESS, "\n%6sK",
                number_to_static_string (dp->rows * ROW_BYTES / 1024));
   for (i = dp->dots; i < opt.dots_in_line; i++)
     {
       if (i % opt.dot_spacing == 0)
-        logputs (LOG_VERBOSE, " ");
-      logputs (LOG_VERBOSE, " ");
+        logputs (LOG_PROGRESS, " ");
+      logputs (LOG_PROGRESS, " ");
     }
 
   print_row_stats (dp, dltime, true);
-  logputs (LOG_VERBOSE, "\n\n");
+  logputs (LOG_PROGRESS, "\n\n");
   log_set_flush (false);
 
   xfree (dp);
@@ -758,7 +758,8 @@ bar_finish (void *progress, double dltime)
 
   bar_draw (bp, false);
 
-  logputs (LOG_VERBOSE, "\n\n");
+  logputs (LOG_VERBOSE, "\n");
+  logputs (LOG_PROGRESS, "\n");
 
   xfree (bp);
 }
@@ -973,7 +974,7 @@ create_image (struct bar_progress *bp, char *buffer, double dl_total_time, bool 
   int orig_url_len = strlen (bp->url);
   int url_len = MIN (orig_url_len, MAX_URL_LEN);
   /* The progress bar should look like this:
-     xx% [=======>             ] nn,nnn 12.34KB/s  eta 36m 51s
+     file xx% [=======>             ] nn,nnn 12.34KB/s  eta 36m 51s
 
      Calculate the geometry.  The idea is to assign as much room as
      possible to the progress bar.  The other idea is to never let
@@ -982,17 +983,17 @@ create_image (struct bar_progress *bp, char *buffer, double dl_total_time, bool 
      It would be especially bad for the progress bar to be resized
      randomly.
 
+     "url "            - string                   - MAX MAX_URL_LEN chars + 1
      "xx% " or "100%"  - percentage               - 4 chars
-     " url "           - string                   - MAX MAX_URL_LEN chars + 2
      "[]"              - progress bar decorations - 2 chars
      " nnn,nnn,nnn"    - downloaded bytes         - 12 chars or very rarely more
-     " 12.5KB/s"        - download rate           - 9 chars
+     " 12.5KB/s"       - download rate            - 9 chars
      "  eta 36m 51s"   - ETA                      - 14 chars
 
      "=====>..."       - progress bar             - the rest
   */
   int dlbytes_size = 1 + MAX (size_grouped_len, 11);
-  int progress_size = bp_width - (url_len + 2 + 4 + 2 + dlbytes_size + 8 + 14);
+  int progress_size = bp_width - (url_len + 1 + 4 + 2 + dlbytes_size + 8 + 14);
 
   /* The difference between the number of bytes used,
      and the number of columns used. */
@@ -1202,8 +1203,8 @@ static void
 display_image (char *buf)
 {
   bool old = log_set_save_context (false);
-  logputs (LOG_VERBOSE, "\r");
-  logputs (LOG_VERBOSE, buf);
+  logputs (LOG_PROGRESS, "\r");
+  logputs (LOG_PROGRESS, buf);
   log_set_save_context (old);
 }
 

@@ -285,7 +285,7 @@ fd_read_body (const char *url, int fd, FILE *out, wgint toread, wgint startpos,
   if (flags & rb_skip_startpos)
     skip = startpos;
 
-  if (opt.verbose)
+  if (opt.show_progress)
     {
       /* If we're skipping STARTPOS bytes, pass 0 as the INITIAL
          argument to progress_create because the indicator doesn't
@@ -434,7 +434,7 @@ fd_read_body (const char *url, int fd, FILE *out, wgint toread, wgint startpos,
       if (progress)
         progress_update (progress, ret, ptimer_read (timer));
 #ifdef WINDOWS
-      if (toread > 0 && !opt.quiet)
+      if (toread > 0 && opt.show_progress)
         ws_percenttitle (100.0 *
                          (startpos + sum_read) / (startpos + toread));
 #endif
