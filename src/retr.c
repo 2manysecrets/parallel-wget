@@ -1274,6 +1274,7 @@ retrieve_from_file (const char *file, bool html, int *count)
                       logprintf (LOG_VERBOSE,
                                  _("Retrying to download(%s). (TRY #%d)\n"),
                                  file->name, ++retries + 1);
+                      delete_temp_files();
                       continue;
                     }
                 }

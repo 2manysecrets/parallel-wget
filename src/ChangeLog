@@ -1,3 +1,9 @@
+2014-05-01	Jure Grabnar <grabnar12@gmail.com>
+
+	* multi.c (PREFIX_TEMP): Define.
+	(init_temp_files, name_temp_files): Use function mkstemp() instead of tmpnam()
+	which is safer and allows for customized path.
+
 2014-03-26  Darshit Shah  <darnir@gmail.com>
 
 	* ftp.c (getftp): Rearrange parameters to fix compiler warning

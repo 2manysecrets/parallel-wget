@@ -40,6 +40,9 @@ as that of the covered work.  */
 #include "multi.h"
 #include "url.h"
 
+/*  Prefix for temporary files. Last 6 chars must be 'X' because of mkstemp(). */
+#define PREFIX_TEMP ".tmp.wget.XXXXXX"
+
 static struct range *ranges;
 char **files;
 
@@ -54,8 +57,12 @@ init_temp_files()
       logprintf (LOG_VERBOSE, "Space for temporary file data could not be allocated.\n");
       exit(1);
     }
+
+  int alloc_size = (opt.dir_prefix ? strlen(opt.dir_prefix) + (sizeof "/") : 0)
+                    + (sizeof PREFIX_TEMP) + 1;
+
   for (i = 0; i < opt.jobs; ++i)
-    if(!(files[i] = malloc (L_tmpnam * sizeof(char))))
+    if(!(files[i] = malloc (alloc_size)))
       {
         logprintf (LOG_VERBOSE, "Space for temporary file names could not be allocated.\n");
         exit(1);
@@ -66,14 +73,23 @@ init_temp_files()
 void
 name_temp_files()
 {
-  int i;
+  int i, fd;
 
   for (i = 0; i < opt.jobs; ++i)
-    if(!tmpnam(files[i]))
-      {
-        logprintf (LOG_VERBOSE, "Temporary file name could not be assigned.\n");
-        exit(1);
-      }
+    {
+      if(opt.dir_prefix)
+        sprintf(files[i], "%s/%s", opt.dir_prefix, PREFIX_TEMP);
+      else
+        sprintf(files[i], "%s", PREFIX_TEMP);
+
+      if(!(fd = mkstemp (files[i])))
+        {
+          logprintf (LOG_VERBOSE, "Temporary file name could not be assigned.\n");
+          exit(1);
+        }
+      close (fd);
+      unlink (files[i]);
+    }
 }
 
 /*  Merge the temporary files in which the chunks are stored to form the
