@@ -1087,7 +1087,7 @@ retrieve_from_file (const char *file, bool html, int *count)
       elect_resources(mlink);
       elect_checksums(mlink);
 
-      init_temp_files();
+      init_temp_files(mlink->files->name);
       init_ranges ();
       thread_ctx = malloc (opt.jobs * (sizeof *thread_ctx));
       
@@ -1118,9 +1118,10 @@ retrieve_from_file (const char *file, bool html, int *count)
           if(j < opt.jobs)
             opt.jobs = j;
 
-          name_temp_files();
+          name_temp_files (file->name, file->size);
 
           sem_init (&retr_sem, 0, 0);
+
           j = ranges_covered = 0;
           resource = file->resources;
           
@@ -1260,10 +1261,10 @@ retrieve_from_file (const char *file, bool html, int *count)
                 sprintf(file_path, "%s/%s", opt.dir_prefix, file->name);
               else
                 sprintf(file_path, "%s", file->name);
-              mkalldirs(file_path);
-              merge_temp_files(file_path);
+
+              rename_temp_file (file_path);
               res = verify_file_hash(file_path, file->checksums);
-              free(file_path);
+              free (file_path);
               if(!res)
                 {
                   ++*count;
@@ -1277,12 +1278,11 @@ retrieve_from_file (const char *file, bool html, int *count)
                     {
                       logprintf (LOG_VERBOSE, "Retrying to download(%s). (TRY #%d)\n",
                                  file->name, ++retries + 1);
+                      delete_temp_files();
                       continue;
                     }
                 }
             }
-
-          delete_temp_files();
 
           clean_range_res_data();
           if (opt.quota && total_downloaded_bytes > opt.quota)
@@ -1295,7 +1295,6 @@ retrieve_from_file (const char *file, bool html, int *count)
 
       free(thread_ctx);
       clean_ranges ();
-      clean_temp_files ();
       delete_mlink(mlink);
     }
   else
@@ -1484,7 +1483,8 @@ rotate_backups(const char *fname)
       sprintf (from, "%s%s%d", fname, SEP, i - 1);
       rename (from, to);
     }
-
+  sprintf (to, "%s%s%d", fname, SEP, 1);
+  rename(fname, to);
   sprintf (to, "%s%s%d", fname, SEP, 1);
   rename(fname, to);
 }
