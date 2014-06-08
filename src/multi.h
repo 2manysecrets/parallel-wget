@@ -32,6 +32,7 @@ as that of the covered work.  */
 #define MULTI_H
 
 #include <semaphore.h>
+#include <pthread.h>
 
 #include "wget.h"
 
@@ -62,15 +63,15 @@ struct s_thread_ctx
   uerr_t status;
 };
 
-void init_temp_files();
+void init_temp_files(char *);
 
-void name_temp_files();
+void name_temp_files(char *, long long int);
 
-void merge_temp_files(char *);
+void rename_temp_file (char *);
 
-void delete_temp_files();
+void delete_temp_files ();
 
-void clean_temp_files();
+void clean_temp_files ();
 
 void init_ranges();
 
