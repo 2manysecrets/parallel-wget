@@ -222,6 +222,7 @@ static const struct {
 #endif
   { "method",           &opt.method,            cmd_string_uppercase },
   { "mirror",           NULL,                   cmd_spec_mirror },
+  { "multi",            &opt.multi_file,        cmd_file },
   { "netrc",            &opt.netrc,             cmd_boolean },
   { "noclobber",        &opt.noclobber,         cmd_boolean },
   { "noconfig",         &opt.noconfig,          cmd_boolean },

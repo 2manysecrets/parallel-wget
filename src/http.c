@@ -3166,7 +3166,7 @@ read_header:
 #endif /* def __VMS [else] */
 
   /* Open the local file.  */
-  if (opt.jobs > 1)
+  if (opt.metalink_file && opt.jobs > 1)
     {
       fp = fopen (hs->local_file, "r+b");
       fseek (fp, hs->restval, SEEK_SET);

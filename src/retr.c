@@ -1071,9 +1071,8 @@ retrieve_from_file (const char *file, bool html, int *count)
     input_file = (char *) file;
 
 #ifdef ENABLE_METALINK
-  mlink *mlink = parse_metalink(input_file);
-
-  if(opt.metalink_file && mlink)
+  mlink *mlink;
+  if(opt.metalink_file && (mlink = parse_metalink (input_file)))
     {
       int i, j, r, ranges_covered, chunk_size, url_err, retries, ret, dt=0;
       pthread_t thread;
@@ -1295,8 +1294,107 @@ retrieve_from_file (const char *file, bool html, int *count)
       delete_mlink(mlink);
     }
   else
-    {
 #endif
+  if (opt.multi_file)
+    {
+      int i, dt;
+      int active_threads = 0;
+      int max_threads_per_server;
+      sem_t retr_sem;
+      struct hash_table *ht;
+
+      max_threads_per_server = 2;
+      opt.jobs = 2;
+
+      struct s_thread_ctx *thread_ctx = malloc (opt.jobs * (sizeof (struct s_thread_ctx)));
+      struct urlpos **thread_urlpos = malloc (opt.jobs * (sizeof (struct urlpos)));
+
+      ht = make_string_hash_table (0);
+      url_list = get_urls_file (input_file);
+      sem_init (&retr_sem, 0, 0);
+      for (i = 0; i < opt.jobs; i++)
+        {
+          struct urlpos *selected = NULL;
+          if (!hash_table_contains (ht, url_list->url->host))
+            {
+              int *tmp = malloc (sizeof (int));
+              *tmp = 1;
+              hash_table_put (ht, strdup (url_list->url->host), tmp);
+              selected = url_list;
+              url_list = url_list->next;
+            }
+          else
+            {
+              int *value = hash_table_get (ht, url_list->url->host);
+              if (*value < max_threads_per_server)
+                {
+                  *value++;
+                  selected = url_list;
+                  url_list = url_list->next;
+                }
+              else
+                {
+                  struct urlpos *url_iter;
+                  for (url_iter = url_list; url_list->next; url_iter = url_iter->next)
+                    {
+                      if (!hash_table_contains (ht, url_iter->next->url->host))
+                        {
+                          int *tmp = malloc (sizeof (int));
+                          *tmp = 1;
+                          hash_table_put (ht, strdup (url_iter->next->url->host), tmp);
+                          selected = url_iter->next;;
+                          break;
+                        }
+                      else
+                        {
+                          int *value = hash_table_get (ht, url_iter->next->url->host);
+                          *value++;
+                          selected = url_iter;
+                          break;
+                        }
+                    }
+                }
+            }
+          if (!selected)
+            {
+              opt.jobs = i+1;
+              thread_ctx = realloc (thread_ctx, opt.jobs * sizeof (struct s_thread_ctx));
+              thread_urlpos = realloc (thread_urlpos, opt.jobs * sizeof (struct urlpos));
+              logprintf (LOG_NOTQUIET, "There can only be active %d at the"
+                                        "same time\n", opt.jobs);
+            }
+          else
+            {
+              thread_urlpos[i] = selected;
+              thread_ctx[i].file = NULL;
+              thread_ctx[i].referer = NULL;
+              thread_ctx[i].redirected = NULL;
+              thread_ctx[i].dt = dt;
+              thread_ctx[i].i = iri;
+              thread_ctx[i].url = selected->url->url;
+              thread_ctx[i].retr_sem = &retr_sem;
+
+              int ret = spawn_thread (thread_ctx, i, -1);
+
+              if (ret)
+                {
+                  char *error = url_error (thread_ctx[i].url, thread_ctx[i].url_err);
+                  logprintf (LOG_NOTQUIET, "%s: %s.\n", thread_ctx[i].url, error);
+                  xfree (error);
+                }
+            }
+        }
+
+      for (i = 0; i < opt.jobs; i++){
+        collect_thread (&retr_sem, thread_ctx);
+      }
+      for (cur_url = url_list; cur_url; cur_url = cur_url->next, ++*count)
+        {
+          printf ("%s\n", cur_url->url->host);
+        }
+    }
+  else
+    {
       url_list = (html ? get_urls_html (input_file, NULL, NULL, iri)
                   : get_urls_file (input_file));
 
@@ -1360,9 +1458,7 @@ Removing file due to --delete-after in retrieve_from_file():\n"));
 
       /* Free the linked list of URL-s.  */
       free_urlpos (url_list);
-#ifdef ENABLE_METALINK
     }
-#endif
 
   iri_free (iri);
 
