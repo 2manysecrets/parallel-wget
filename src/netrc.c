@@ -43,6 +43,8 @@ as that of the covered work.  */
 #include "init.h"
 
 #define NETRC_FILE_NAME ".netrc"
+#define HOME_LOCK()
+#define HOME_UNLOCK()
 
 acc_t *netrc_list;
 
@@ -81,6 +83,7 @@ search_netrc (const char *host, const char **acc, const char **passwd,
 
 #else /* def __VMS */
 
+      HOME_LOCK();
       char *home = home_dir ();
 
       netrc_list = NULL;
@@ -97,6 +100,7 @@ search_netrc (const char *host, const char **acc, const char **passwd,
           if (err == 0)
             netrc_list = parse_netrc (path);
         }
+      HOME_UNLOCK();
 
 #endif /* def __VMS [else] */
     }
