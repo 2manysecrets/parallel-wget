@@ -4351,10 +4351,13 @@ http_cleanup (void)
 #else
   struct s_pconn *it = pconn;
 
-  for (; it; it = it->next)
+  while (it)
     {
-      xfree_null (it->host);
-      xzero (it);
+      struct s_pconn *tmp = it;
+      it = it->next;
+
+      xfree_null (tmp->host);
+      xfree_null (tmp);
     }
 #endif
 

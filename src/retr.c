@@ -1375,8 +1375,8 @@ retrieve_from_file (const char *file, bool html, int *count)
           if (!selected)
             {
               opt.jobs = i;
-              /*thread_ctx = realloc (thread_ctx, opt.jobs * sizeof (struct s_thread_ctx));*/
-              /*thread_urlpos = realloc (thread_urlpos, opt.jobs * sizeof (struct urlpos));*/
+              thread_ctx = realloc (thread_ctx, opt.jobs * sizeof (struct s_thread_ctx));
+              thread_urlpos = realloc (thread_urlpos, opt.jobs * sizeof (struct urlpos));
               logprintf (LOG_NOTQUIET, "There can only be %d active threads at the "
                                         "same time.\n", opt.jobs);
             }
@@ -1405,8 +1405,7 @@ retrieve_from_file (const char *file, bool html, int *count)
             }
         }
 
-      int j = 0;
-      for (j = 0; j < 15; j++)
+      while (1)
         {
           int t = collect_thread (&retr_sem, thread_ctx);
           status = thread_ctx[t].status;
@@ -1422,11 +1421,21 @@ retrieve_from_file (const char *file, bool html, int *count)
               struct urlpos *u = thread_urlpos[t];
               int *value = hash_table_get (ht, u->url->host);
               --(*value);
+
+              ++(*count);
             }
+
+          /* Free resources */
+          thread_urlpos[t]->next = NULL;
+          free_urlpos (thread_urlpos[t]);
+
+          free (thread_ctx[t].file);
 
           /* If no thread is active and list is empty, stop collecting. */
           if (!active_t && !url_list)
-            break;
+            {
+              break;
+            }
 
           struct urlpos *selected = NULL;
           url_list = select_next_url (ht, url_list, &selected);
@@ -1438,10 +1447,9 @@ retrieve_from_file (const char *file, bool html, int *count)
             }
           else
             {
-              free (thread_urlpos[t]);
+              /* Create new thread */
               struct s_thread_ctx new_thread;
 
-              // Free old thread
               thread_urlpos[t] = selected;
               new_thread.file = NULL;
               new_thread.referer = NULL;
@@ -1465,6 +1473,19 @@ retrieve_from_file (const char *file, bool html, int *count)
               active_t++;
             }
         }
+
+      /* Free hash table */
+      hash_table_iterator iter;
+      for (hash_table_iterate (ht, &iter); hash_table_iter_next (&iter); )
+        {
+          xfree (iter.key);
+          xfree (iter.value);
+        }
+      hash_table_destroy (ht);
+
+      xfree (thread_ctx);
+      xfree (thread_urlpos);
+      sem_destroy (&retr_sem);
     }
   else
     {

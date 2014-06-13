@@ -73,7 +73,7 @@ as that of the covered work.  */
 #include "test.h"
 #endif
 
-
+#define DEBUG_MALLOC
 
 #define CMD_DECLARE(func) static bool func (const char *, const char *, void *)
 
@@ -1752,13 +1752,13 @@ cleanup (void)
   host_cleanup ();
   log_cleanup ();
 
-  for (i = 0; i < nurl; i++)
-    xfree (url[i]);
+  /*for (i = 0; i < nurl; i++)*/
+    /*xfree (url[i]);*/
 
-  {
-    extern acc_t *netrc_list;
-    free_netrc (netrc_list);
-  }
+  /*{*/
+    /*extern acc_t *netrc_list;*/
+    /*free_netrc (netrc_list);*/
+  /*}*/
   xfree_null (opt.choose_config);
   xfree_null (opt.lfilename);
   xfree_null (opt.dir_prefix);

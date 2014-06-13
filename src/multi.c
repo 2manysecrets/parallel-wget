@@ -170,8 +170,6 @@ clean_ranges()
 int
 spawn_thread (struct s_thread_ctx *thread_ctx, int index, int resource)
 {
-  static pthread_t thread;
-
   thread_ctx[index].url_parsed = url_parse (thread_ctx[index].url,
                        &(thread_ctx[index].url_err), thread_ctx[index].i, true);
   if(!thread_ctx[index].url_parsed)
@@ -187,7 +185,9 @@ spawn_thread (struct s_thread_ctx *thread_ctx, int index, int resource)
   thread_ctx[index].used = 1;
   thread_ctx[index].terminated = 0;
 
-  return pthread_create (&thread, NULL, segmented_retrieve_url, &thread_ctx[index]);
+  return pthread_create (&thread_ctx[index].thread,
+                         NULL, segmented_retrieve_url,
+                         &thread_ctx[index]);
 }
 
 /* Collects the first thread to terminate and updates struct s_thread_ctx
@@ -210,6 +210,7 @@ collect_thread (sem_t *retr_sem, struct s_thread_ctx *thread_ctx)
         thread_ctx[k].used = 0;
         if (thread_ctx[k].range)
           (thread_ctx[k].range)->is_assigned = 0;
+        pthread_join (thread_ctx[k].thread, NULL);
         return k;
       }
 }

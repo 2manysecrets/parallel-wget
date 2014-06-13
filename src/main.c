@@ -1778,7 +1778,7 @@ be specified when downloading from a metalink.\n"));
     }
 #endif
 
-  /* And then from the metalink file, if any.  */
+  /* And then from the multi file, if any.  */
   if (opt.multi_file)
     {
       int count;
