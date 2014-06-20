@@ -1413,8 +1413,21 @@ retrieve_from_file (const char *file, bool html, int *count)
 
           if (status != RETROK)
             {
-                logprintf (LOG_VERBOSE, "Downloading %s failed.", thread_ctx[t].url);
-                // retry
+                if (thread_ctx[t].n_retry > opt.n_retries)
+                  {
+                    logprintf (LOG_VERBOSE, ("Maximum number of retries for %s"
+                                             "has been reached. %s cannot be"
+                                             "downloaded.\n", thread_ctx[t].url,
+                                             thread_ctx[t].url));
+                  }
+                else
+                  {
+                    thread_ctx[t].n_retry++;
+                    logprintf (LOG_VERBOSE, "Downloading %s failed. Retrying "
+                               "download. (TRY #%d)\n ", thread_ctx[t].url,
+                               thread_ctx[t].n_retry);
+                    continue;
+                  }
             }
           else
             {
@@ -1469,6 +1482,7 @@ retrieve_from_file (const char *file, bool html, int *count)
                   logprintf (LOG_NOTQUIET, "%s: %s.\n", thread_ctx[i].url, error);
                   xfree (error);
                   sem_post (&retr_sem);
+                  continue;
                }
               active_t++;
             }
