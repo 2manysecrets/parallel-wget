@@ -234,6 +234,7 @@ static struct cmdline_option option_data[] =
 #endif
     { "method", 0, OPT_VALUE, "method", -1 },
     { "mirror", 'm', OPT_BOOLEAN, "mirror", -1 },
+    { "multi-file", 0, OPT_VALUE, "multi", -1},
     { "no", 'n', OPT__NO, NULL, required_argument },
     { "no-clobber", 0, OPT_BOOLEAN, "noclobber", -1 },
     { "no-config", 0, OPT_BOOLEAN, "noconfig", -1},
@@ -485,6 +486,10 @@ Logging and input file:\n"),
 #endif
     "\n",
 
+#ifdef ENABLE_THREADS
+    N_("\
+       --multi-file          download URLs found in FILE concurrently.\n"),
+#endif
     N_("\
 Download:\n"),
 #ifdef ENABLE_METALINK
@@ -1386,6 +1391,7 @@ for details.\n\n"));
     }
 
   if (!nurl && !opt.input_filename
+       && !opt.multi_file
 #ifdef ENABLE_METALINK
        && !opt.metalink_file
 #endif
@@ -1776,6 +1782,19 @@ outputting to a regular file.\n"));
                    opt.input_filename);
     }
 #endif
+
+  /* And then from the multi file, if any.  */
+  if (opt.multi_file)
+    {
+      int count;
+      int status;
+
+      status = retrieve_from_file (opt.multi_file, opt.force_html, &count);
+      inform_exit_status (status);
+      if (!count)
+        logprintf (LOG_NOTQUIET, _("No URLs found in %s.\n"),
+                   opt.input_filename);
+    }
 
   /* Print broken links. */
   if (opt.recursive && opt.spider)
